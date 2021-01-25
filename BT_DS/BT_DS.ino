@@ -25,13 +25,15 @@ void setup()
   SerialBT.register_callback(callback);
   SerialBT.begin("ESP32");
 
-  while (conClient == false) {
-    delay(1000);
-    Serial.println("Connecting to BT client..");
-  }
 
-  BT_data();
-  if (!checkRed) {
+
+
+  if (checkRed == false) {
+    while (conClient == false) {
+      delay(1000);
+      Serial.println("Connecting to BT client..");
+    }
+    BT_data();
     WiFi.begin(ssid.c_str(), password.c_str());
 
     while (WiFi.status() != WL_CONNECTED) {
@@ -40,11 +42,12 @@ void setup()
     }
     Serial.println("RED CONFIGURADA");
     SerialBT.print("RED CONFIGURADA");
-    Serial.println("A dormir........................ ");
-    Serial.flush();
-    esp_deep_sleep_start();
     checkRed = true;
   }
+
+  Serial.println("A dormir........................ ");
+  Serial.flush();
+  esp_deep_sleep_start();
 }
 
 void loop()
