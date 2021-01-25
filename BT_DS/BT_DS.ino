@@ -1,8 +1,6 @@
-/*
- * Caracol Electronics 2020
- */
+#include <WiFi.h>
 #define uS_a_S_FACTOR 1000000  /* x 1'000'000 para tener segundos */
-#define TIME  6        /* Tiempo que duerme en Segundos */
+#define TIME  10        /* Tiempo que duerme en Segundos */
 
 #include "BluetoothSerial.h"
 
@@ -11,38 +9,70 @@
 #endif
 
 BluetoothSerial SerialBT;
-
-RTC_DATA_ATTR int bootNum = 0; //Guarda datos en la memoria flash
+RTC_DATA_ATTR String ssid = "";
+RTC_DATA_ATTR String password = "";
+RTC_DATA_ATTR bool checkRed = false;
+bool conClient = false;
 
 void setup()
 {
   Serial.begin(115200);
-  delay(100);
 
-  SerialBT.begin("ESP32test"); //Bluetooth device name
-  Serial.println("The device started, now you can pair it with bluetooth!");
-  
-  //incrementa cada vez que se depierta
-  bootNum++;
-  Serial.println("numero de boot: " + String(bootNum));
-  esp_sleep_enable_timer_wakeup(TIME * uS_a_S_FACTOR); 
+  esp_sleep_enable_timer_wakeup(TIME * uS_a_S_FACTOR);
   Serial.println("Se configura para despertar en " + String(TIME) +
-  " segundos");
+                 " segundos");
+
+  SerialBT.register_callback(callback);
+  SerialBT.begin("ESP32");
+
+  while (conClient == false) {
+    delay(1000);
+    Serial.println("Connecting to BT client..");
+  }
+
+  BT_data();
+  if (!checkRed) {
+    WiFi.begin(ssid.c_str(), password.c_str());
+
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(1000);
+      Serial.println("Connecting to WiFi..");
+    }
+    Serial.println("RED CONFIGURADA");
+    SerialBT.print("RED CONFIGURADA");
+    Serial.println("A dormir........................ ");
+    Serial.flush();
+    esp_deep_sleep_start();
+    checkRed = true;
+  }
 }
 
 void loop()
 {
-  if (Serial.available()) {
-    SerialBT.write(Serial.read());
+}
+void callback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
+  if (event == ESP_SPP_SRV_OPEN_EVT) {
+    Serial.println("Client Connected");
+    conClient = true;
   }
-  if (SerialBT.available()) {
-    char mensaje = SerialBT.read();
-    if ( mensaje == 'a'){
-        Serial.println("A dormir........................ ");
-        Serial.flush(); 
-        esp_deep_sleep_start();
+}
+void BT_data() {
+  Serial.println("El usuario debe introducir el ssid de la red");
+  SerialBT.print("Ingrese el SSID de la red");
+  while (ssid.length() < 2) {
+    if (SerialBT.available()) {
+      ssid = SerialBT.readString();
+      Serial.println(ssid);
     }
-    Serial.write(SerialBT.read());
+    delay(100);
   }
-  delay(20);
+  Serial.println("El usuario debe introducir el password de la red");
+  SerialBT.print("Ingrese el PASSWORD de la red");
+  while (password.length() < 2) {
+    if (SerialBT.available()) {
+      password = SerialBT.readString();
+      Serial.println(password);
+    }
+    delay(100);
+  }
 }
