@@ -22,6 +22,7 @@ String ssid_string = "";
 String STRpassword = "";
 String password_string = "";
 RTC_DATA_ATTR bool checkRed = false;
+RTC_DATA_ATTR int ConnFailed = 0;
 
 #define EEPROM_SIZE 64
 
@@ -106,6 +107,7 @@ void BT_data() {
     }
     delay(100);
   }
+  ConnFailed = 0;
 }
 void callback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
   if (event == ESP_SPP_SRV_OPEN_EVT) {
@@ -141,9 +143,14 @@ void connectToWiFi(const char* WIFI_NETWORK, const char* WIFI_PASSWORD)
 
   // Make sure that we're actually connected, otherwise go to deep sleep
   if(WiFi.status() != WL_CONNECTED){
+    ConnFailed++;
     Serial.println("FAILED");
+    if (ConnFailed > 3){
+      checkRed = false;
+    }
     goToDeepSleep(10);
   }
+  ConnFailed = 0;
 
   Serial.println("OK");
 }
