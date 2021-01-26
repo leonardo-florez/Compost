@@ -34,32 +34,11 @@ void setup() {
   SerialBT.register_callback(callback);
   SerialBT.begin("ESP32test"); //Bluetooth device name
   Serial.println("The device started, now you can pair it with bluetooth!");
-
+    
   if (!EEPROM.begin(EEPROM_SIZE)) {
     Serial.println("failed to init EEPROM");
     delay(1000000);
   }
-
-  if (!checkRed) {
-    while (!conClient) {
-      delay(1000);
-      Serial.println("Connecting to BT client..");
-    }
-    BT_data();
-    // writing byte-by-byte to EEPROM
-    for (int i = 0; i < EEPROM_SIZE; i++) {
-      EEPROM.write(addr, ssid[i]);
-      addr += 1;
-    }
-    for (int i = 0; i < EEPROM_SIZE; i++) {
-      EEPROM.write(addr2, password[i]);
-      addr2 += 1;
-    }
-    EEPROM.commit();
-    checkRed = true;
-  }
-
-
 
   // reading byte-by-byte from EEPROM
   for (int i = 0; i < EEPROM_SIZE; i++) {
@@ -80,6 +59,25 @@ void setup() {
     password_string = String(password_string + char(readValue));
   }
   Serial.println("PASSWORD: " + password_string);
+  
+  if (!checkRed) {
+    while (!conClient) {
+      delay(1000);
+      Serial.println("Connecting to BT client..");
+    }
+    BT_data();
+    // writing byte-by-byte to EEPROM
+    for (int i = 0; i < EEPROM_SIZE; i++) {
+      EEPROM.write(addr, ssid[i]);
+      addr += 1;
+    }
+    for (int i = 0; i < EEPROM_SIZE; i++) {
+      EEPROM.write(addr2, password[i]);
+      addr2 += 1;
+    }
+    EEPROM.commit();
+    checkRed = true;
+  }
 
   goToDeepSleep();
 }
