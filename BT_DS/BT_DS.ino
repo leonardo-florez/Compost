@@ -9,8 +9,8 @@
 #endif
 
 BluetoothSerial SerialBT;
-RTC_DATA_ATTR String ssid = "";
-RTC_DATA_ATTR String password = "";
+RTC_DATA_ATTR String ssid;
+RTC_DATA_ATTR String password;
 RTC_DATA_ATTR bool checkRed = false;
 bool conClient = false;
 
@@ -34,20 +34,20 @@ void setup()
       Serial.println("Connecting to BT client..");
     }
     BT_data();
-    WiFi.begin(ssid.c_str(), password.c_str());
-
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(1000);
-      Serial.println("Connecting to WiFi..");
-    }
-    Serial.println("RED CONFIGURADA");
-    SerialBT.print("RED CONFIGURADA");
     checkRed = true;
   }
+  WiFi.begin(ssid.c_str(), password.c_str());
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi..");
+  }
+  Serial.println("RED CONFIGURADA");
+  SerialBT.print("RED CONFIGURADA");
 
   Serial.println("A dormir........................ ");
   Serial.flush();
-  esp_deep_sleep_start();
+  esp_light_sleep_start();
 }
 
 void loop()
@@ -59,23 +59,23 @@ void callback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
     conClient = true;
   }
 }
-void BT_data() {
-  Serial.println("El usuario debe introducir el ssid de la red");
-  SerialBT.print("Ingrese el SSID de la red");
-  while (ssid.length() < 2) {
-    if (SerialBT.available()) {
-      ssid = SerialBT.readString();
-      Serial.println(ssid);
+  void BT_data() {
+    Serial.println("El usuario debe introducir el ssid de la red");
+    SerialBT.print("Ingrese el SSID de la red");
+    while (ssid.length() < 2) {
+      if (SerialBT.available()) {
+        ssid = SerialBT.readString();
+        Serial.println(ssid);
+      }
+      delay(100);
     }
-    delay(100);
-  }
-  Serial.println("El usuario debe introducir el password de la red");
-  SerialBT.print("Ingrese el PASSWORD de la red");
-  while (password.length() < 2) {
-    if (SerialBT.available()) {
-      password = SerialBT.readString();
-      Serial.println(password);
+    Serial.println("El usuario debe introducir el password de la red");
+    SerialBT.print("Ingrese el PASSWORD de la red");
+    while (password.length() < 2) {
+      if (SerialBT.available()) {
+        password = SerialBT.readString();
+        Serial.println(password);
+      }
+      delay(100);
     }
-    delay(100);
   }
-}
